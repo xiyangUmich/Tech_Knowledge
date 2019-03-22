@@ -1,0 +1,187 @@
+https://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000
+
+目前最先进的分布式版本控制系统;
+
+	1. add change
+[ 工作区 & 暂存区 & 分支]
+Git的版本库里存了很多东西，其中最重要的就是称为stage（或者叫index）的暂存区(由git add将所有要提交的修改放到暂存区)，还有Git为我们自动创建的第一个分支master(git commit把暂存区的修改提交到版本库分支)，以及指向master的一个指针叫HEAD。
+
+
+
+
+Screen clipping taken: 3/15/2019 5:14 PM
+
+
+
+[ git commit ] -m "message"
+
+	2. check change 
+[ git diff ]
+git diff HEAD(指针) -- {filename}    //check diff with
+
+[ git log ]:
+Git commit history
+
+[ git reglog ]:
+record every cmd history
+//要重返未来，用git reflog查看命令历史，以便确定要回到未来的哪个版本。
+
+	3. revert change
+[ git checkout ] git checkout -- {filename}
+丢弃工作区的修改; 即让文件回到上一次 "git commit"/"git add"的本版
+" -- " 很重要
+但不可丢弃已被添加到暂缓区的修改
+
+[ git reset (--hard) commit_number ]: git reset 既可以回退版本，也可以把暂换区的修改会退到工作区
+Reset to previous version;    //撤销新的commit
+--hard: rewrite local change
+git在内部有一个指向当前版本的"Head"指针; 回退版本时，只是把HEAD指向指定commit
+$. reset certain file
+git reset HEAD filename   //把缓存区的修改撤销掉
+
+	4. remove
+[ git rm file]: 删除一个文件
+//之后再git commit； 文件就会在版本库中删除
+//若是误删除，则可以用git reset HEAD file, 保留文件在版本库的version
+
+	5. remote repo
+	1). 本地关联远程  ??
+	git remote add origin (repo_name??)git@github.com:{account_name}/{repo_name}.git   //default remote repo name used to operation: origin
+	(生成SSH key 公钥； 公钥在远程repo账户中时，才可以对其进行操作)
+	2). 本地库推送到远程
+	git push origin master   //把本地master分支的内容推送到远程origin repo
+	(git push -u origin master: -u 可以把本地master分支和远程master分支关联起来，一般用在第一次在远程创建新分支master)
+	git push origin myRepo: myRepo : 在远程建立myRepo repo, 并push本地myRepo到远程，且关联
+	3). 从远程库克隆
+	git clone {address}
+	4). git pull origin(remote_repo_name) master(local branch name) 
+	Get updated codes
+	5). check remote repo name:
+	get remote -v      // -v is for more details
+             
+	6. branch management    
+
+
+每一个分支都是一个新的指针，指向不同的commit;
+HEAD指向当前分支；
+两分支merge或任何改动是，改变的只是相应指针，内容并没有改变
+
+1). 创建新分支
+git branch dev      //create a new branch1, under current version
++ git checkout dev    //point local "HEAD" to master
+= 
+git checkout -b dev //创建并switch(-b)到新分支dev
+git checkout -b dev origin/dev  
+git branch --set-upstream-to=origin/dev dev 
+
+ //创建本地dev分支，并和远程dev分支对应；之后就可以随时将改动push到远程dev，并可从远程随时pull
+2). 查看所有分支
+git branch
+3). 切换分支
+git checkout master (只切换， 不会改变之前分支内容)
+工作区和缓存区没有commit的改动切换分支时会保留；
+4). 分支合并
+git merge dev    //把dev分支内容merge 到当前分支(master)上面
+只有commit之后的改动可以用merge
+5). 删除分支
+git branch -d dev
+若分支位提交，会提示删除失败，需用-D强行删除
+git branch -D dev
+6). 保存分支中未commit的改动
+git stash    //保存当前未commit的修改；并隐藏
+git stash pop 或 git stash apply stash@{0}       //回到分之后，显示改动
+git stash list可以看到所有的版本信息
+7). 分支冲突
+
+
+
+
+Git用<<<<<<<，=======，>>>>>>>标记出不同分支的内容
+Eg.
+<<<<<<< HEAD
+Creating a new branch is quick & simple.
+=======
+Creating a new branch is quick AND simple.
+>>>>>>> feature1
+
+手动修改后:
+
+
+
+8). show history
+git log --graph
+
+9). 禁用Fast Forward merge
+通常，合并分支时，如果可能，Git会用Fast forward模式，但这种模式下，删除分支后，会丢掉分支信息。
+git merge --no-ff -m "merge with no-ff" dev
+
+
+
+
+10). 多人协作push过程
+多人协作的工作模式通常是这样：
+
+首先，可以试图用git push origin <branch-name>推送自己的修改；
+
+如果推送失败，则因为远程分支比你的本地更新，需要先用git pull试图合并；
+
+如果合并有冲突，则解决冲突，并在本地提交；
+
+没有冲突或者解决掉冲突后，再用git push origin <branch-name>推送就能成功！
+
+如果git pull提示no tracking information，则说明本地分支和远程分支的链接关系没有创建，用命令git branch --set-upstream-to <branch-name> origin/<branch-name>。
+git checkout -b dev origin/dev    //在本地创建和远程分支对应的分支
+git branch --set-upstream-to=origin/dev dev    // 建立本地分支和远程分支的关联
+
+&. [git push -f]
+撤销远程repo的commit:
+git reset --hard {commit_number};
+git push -f origin master
+
+& [git rebase]
+在git push时，如果发现有conflict， 需要git pull后再git push, 这样会导致记录混乱; 使用 git rebase, 会使先于当前push的commit版本排在自己的commit之前，使log很整齐。
+Eg.
+origin/master:  tag1.0; => HEAD->master: tag2.0; => git pull: tag1.1;
+git rebase: origin/master:  tag1.0; => git pull: tag1.1; => HEAD->master: tag2.0
+
+
+	7. 标签  
+使用标签来表示branch/commit
+1). 创建标签
+git tag v1.0    //创建标签到当前最新的commit
+2). 创建标签到之前某个commit
+git log --pretty=oneline --abbrev-commit
+git tag v0.9 f52c633
+3). 查看已有标签
+git tag;
+git show v1.0 (check tag details)
+4). 为标签添加说明
+git tag -a v1.0 -m "some details" {commit number}
+5). 推送标签到远程 
+git push origin v1.0
+git push origin --tags
+$ 远程删除：
+git tag -d v1.0
+git push origin : refs/tags/v1.0
+
+
+[ Summary ] remote private repo <-> local private repo
+	1). 创建新的branch
+	   $. 新的branch：git checkout -b branchName;
+	   $. 关联远程branch: git checkout -b branchName orgin/branchName;
+	2).本地缓存区和工作区
+	   $.git add…; git commit
+	   $.git checkout -- filename; (没有add到缓存区)
+	     git reset --hard commit_numebr;  (已经add到缓存区)
+	     git status; git log
+	3).本地分支切换
+	       $. git stash; git stash pop
+	       $. git checkout branchName;
+	       $. git merge;
+	4). submit commit
+	      $. git push:  
+	      $. 若远程端没有该repo: 
+	          git push -u origin master 
+	          git push origin myRepo: myRepo
+	      
+	    
