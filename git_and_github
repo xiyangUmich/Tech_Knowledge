@@ -144,6 +144,9 @@ Eg.
 origin/master:  tag1.0; => HEAD->master: tag2.0; => git pull: tag1.1;
 git rebase: origin/master:  tag1.0; => git pull: tag1.1; => HEAD->master: tag2.0
 
+&. 当需要合并几个commit到一个时:
+git rebase -i {commit_id}   //where the commit_id means the commit one prior to all commits we plan to combine
+
 
 	7. 标签  
 使用标签来表示branch/commit
